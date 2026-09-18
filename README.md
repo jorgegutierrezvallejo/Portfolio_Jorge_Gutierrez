@@ -23,10 +23,6 @@ assets/            Imágenes, fuentes, íconos y CV
 images/            Logo y favicon
 ```
 
-## Agregar un proyecto
-
-Edita `data/projects.js`, copia un bloque existente y cambia sus datos. La categoría (`web`, `design` o `video`) define en qué filtro aparece. Las portadas van en `assets/images/projects/covers/` y las fotos del caso de estudio en `assets/images/projects/case/`.
-
 ## Diseño
 
 [Ver en Figma](https://www.figma.com/design/CeFnKVuo5EkJd6R4pvehDd/Portafolio-Jorge?node-id=0-1&t=ecAR4cfg6cpLmNSS-1)
