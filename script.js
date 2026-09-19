@@ -45,8 +45,8 @@ const copy = {
 
     projectsTitle: "Proyectos",
     filtersLabel: "Filtrar proyectos",
-    filterDesign: "02 Diseño",
-    filterVideo: "03 Video",
+    filterDesign: "03 Diseño",
+    filterVideo: "02 Video",
     prevChannel: "Canal anterior",
     nextChannel: "Canal siguiente",
     prevProject: "Proyecto anterior",
@@ -55,9 +55,9 @@ const copy = {
     viewProject: "Ver proyecto",
     caseStudy: "Caso de estudio",
     close: "Cerrar",
-    caseSoon: "Fotos próximamente",
-    prevPhoto: "Foto anterior",
-    nextPhoto: "Foto siguiente",
+    caseSoon: "Próximamente",
+    prevPhoto: "Anterior",
+    nextPhoto: "Siguiente",
     photo: "Foto",
     caseClient: "Cliente",
     caseYear: "Año",
@@ -66,6 +66,14 @@ const copy = {
     caseChallenge: "El reto",
     caseSolution: "La solución",
     caseResults: "Resultados",
+    viewVideo: "Ver video",
+    volUp: "Subir volumen",
+    volDown: "Bajar volumen",
+    rotateHint: "Gira tu teléfono para ver el video en grande",
+    rotateOk: "Verlo así",
+    caseGallery: "Galería",
+    caseResultLabel: "Resultado",
+    caseOpen: "ver en grande",
     scrollHint: "Scroll para cambiar de canal",
     comingSoonTitle: "Próximamente",
     comingSoonText: "Este canal está en producción. Muy pronto habrá proyectos al aire.",
@@ -131,8 +139,8 @@ const copy = {
 
     projectsTitle: "Projects",
     filtersLabel: "Filter projects",
-    filterDesign: "02 Design",
-    filterVideo: "03 Video",
+    filterDesign: "03 Design",
+    filterVideo: "02 Video",
     prevChannel: "Previous channel",
     nextChannel: "Next channel",
     prevProject: "Previous project",
@@ -141,9 +149,9 @@ const copy = {
     viewProject: "View project",
     caseStudy: "Case study",
     close: "Close",
-    caseSoon: "Photos coming soon",
-    prevPhoto: "Previous photo",
-    nextPhoto: "Next photo",
+    caseSoon: "Coming soon",
+    prevPhoto: "Previous",
+    nextPhoto: "Next",
     photo: "Photo",
     caseClient: "Client",
     caseYear: "Year",
@@ -152,6 +160,14 @@ const copy = {
     caseChallenge: "The challenge",
     caseSolution: "The solution",
     caseResults: "Results",
+    viewVideo: "Watch video",
+    volUp: "Volume up",
+    volDown: "Volume down",
+    rotateHint: "Turn your phone to watch the video full size",
+    rotateOk: "Watch like this",
+    caseGallery: "Gallery",
+    caseResultLabel: "Result",
+    caseOpen: "view larger",
     scrollHint: "Scroll to switch channels",
     comingSoonTitle: "Coming soon",
     comingSoonText: "This channel is in production. New projects will be on air very soon.",
@@ -295,6 +311,11 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
 
   const tv = section.querySelector("[data-tv]");
   const cover = section.querySelector("[data-tv-cover]");
+  const tvVideo = section.querySelector("[data-tv-video]");
+  const tvOsd = section.querySelector("[data-tv-osd]");
+  const volButtons = section.querySelectorAll("[data-tv-vol]");
+  const tvSite = section.querySelector("[data-tv-site]");
+  const tvSiteImg = section.querySelector("[data-tv-site-img]");
   const bars = section.querySelector("[data-tv-bars]");
   const barsLabel = section.querySelector("[data-tv-bars-label]");
   const channelLabel = section.querySelector("[data-tv-channel]");
@@ -325,6 +346,44 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
 
   const pad = (number) => String(number).padStart(2, "0");
   const localized = (value) => (value && typeof value === "object" ? value[currentLanguage] ?? value.es : value ?? "");
+  /* un proyecto puede estar en varios filtros: category: "web" o ["web", "video", "design"] */
+  const categoriesOf = (project) => [].concat(project.category ?? []);
+  /* views.<filtro> sobrescribe campos (cover, coverVideo, description, tags, metric…) solo en ese filtro */
+  const viewFor = (project) => (project.views?.[filter] ? { ...project, ...project.views[filter] } : project);
+  const siteLabel = () => (filter === "web" ? t("viewSite") : t("viewProject"));
+  /* video principal del proyecto: project.video, o el primero de caseStudy.media */
+  const videoOf = (project) => {
+    if (project.video) return typeof project.video === "string" ? { src: project.video } : project.video;
+    return (project.caseStudy?.media ?? []).find((item) => item?.type === "video" && item.src) ?? null;
+  };
+  /* botón principal: en el filtro Video abre el reproductor; si no, enlaza al sitio */
+  function setupMainButton(button, project) {
+    const video = filter === "video" ? videoOf(project) : null;
+    const label = button.querySelector("[data-i18n]");
+    if (video) {
+      button.hidden = false;
+      button.dataset.mode = "video";
+      button.href = video.src;
+      button.removeAttribute("target");
+      label.textContent = t("viewVideo");
+      button._video = video;
+      return;
+    }
+    delete button.dataset.mode;
+    button._video = null;
+    button.target = "_blank";
+    button.hidden = !project.url;
+    if (project.url) {
+      button.href = project.url;
+      label.textContent = siteLabel();
+    }
+  }
+  function onMainButton(event) {
+    const button = event.currentTarget;
+    if (button.dataset.mode !== "video" || !button._video) return;
+    event.preventDefault();
+    window.ZHAWVideoPlayer?.open(button._video);
+  }
 
   /* ---------- Render ---------- */
 
@@ -409,6 +468,8 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
       cover.hidden = true;
       bars.hidden = false;
       barsLabel.textContent = "NO SIGNAL";
+      setTvVideo(null);
+      setTvSite(null);
       return;
     }
 
@@ -428,11 +489,7 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     metric.hidden = !metricText;
     metric.textContent = metricText;
 
-    urlButton.hidden = !project.url;
-    if (project.url) {
-      urlButton.href = project.url;
-      urlButton.querySelector("[data-i18n]").textContent = project.category === "web" ? t("viewSite") : t("viewProject");
-    }
+    setupMainButton(urlButton, project);
 
     caseButton.hidden = false;
 
@@ -448,12 +505,104 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
       bars.hidden = false;
       barsLabel.textContent = projectName;
     }
+    setTvVideo(project.coverVideo);
+    setTvSite(project);
 
     track.querySelectorAll(".channel-card").forEach((card, index) => {
       const isActive = index === active;
       card.classList.toggle("is-active", isActive);
       card.querySelector("button")?.setAttribute("aria-current", isActive ? "true" : "false");
     });
+  }
+
+  /* ---------- Volumen del TV (VOL− / VOL+) ---------- */
+  const VOL_STEPS = 10;
+  let tvVolume = 0; // 0 = silencio (arranca muteado)
+  let otherModalOpen = false;
+  let osdTimer;
+
+  function applyTvVolume() {
+    if (!tvVideo) return;
+    tvVideo.volume = tvVolume / VOL_STEPS;
+    tvVideo.muted = tvVolume === 0 || otherModalOpen;
+  }
+
+  function showOsd(text) {
+    tvOsd.textContent = text;
+    tvOsd.hidden = false;
+    clearTimeout(osdTimer);
+    osdTimer = setTimeout(() => (tvOsd.hidden = true), 1400);
+  }
+
+  function changeVolume(delta) {
+    tvVolume = Math.max(0, Math.min(VOL_STEPS, tvVolume + delta));
+    applyTvVolume();
+    if (!tvVideo.hidden && tvVideo.paused) tvVideo.play().catch(() => {});
+    const bars = "▮".repeat(tvVolume) + "▯".repeat(VOL_STEPS - tvVolume);
+    showOsd(tvVolume === 0 ? "MUTE" : `VOL ${bars}`);
+  }
+
+  volButtons.forEach((button) => button.addEventListener("click", () => changeVolume(Number(button.dataset.tvVol))));
+
+  /* si se abre el modal o el reproductor, el TV se silencia */
+  document.addEventListener("zhaw:modal", (event) => {
+    otherModalOpen = Boolean(event.detail.open);
+    applyTvVolume();
+  });
+
+  /* Web: computador con la página completa haciendo scroll */
+  const siteOf = (project) =>
+    project.screen || (project.caseStudy?.media ?? []).find((item) => item?.type === "page" && item.src)?.src || "";
+
+  function measureSite() {
+    if (tvSite.hidden || !tvSiteImg.naturalWidth) return;
+    const distance = Math.max(0, tvSiteImg.offsetHeight - tvSite.clientHeight);
+    tvSite.style.setProperty("--site-dist", `${distance}px`);
+    tvSite.style.setProperty("--site-dur", `${Math.max(10, Math.round(distance / 70))}s`);
+  }
+
+  function setTvSite(project) {
+    const isPc = filter === "web";
+    tv.classList.toggle("is-pc", isPc);
+    const src = isPc && project ? siteOf(project) : "";
+    tvSite.hidden = !src;
+    if (!src) {
+      tvSiteImg.removeAttribute("src");
+      return;
+    }
+    cover.hidden = true;
+    bars.hidden = true;
+    if (tvSiteImg.getAttribute("src") !== src) {
+      tvSite.style.setProperty("--site-dist", "0px");
+      tvSiteImg.src = src;
+    }
+    tvSiteImg.style.animation = "none";
+    void tvSiteImg.offsetWidth;
+    tvSiteImg.style.animation = "";
+    if (tvSiteImg.complete) measureSite();
+  }
+
+  tvSiteImg.addEventListener("load", measureSite);
+  if ("ResizeObserver" in window) new ResizeObserver(measureSite).observe(tvSite);
+
+  /* video en el televisor (muted + loop); con "reducir movimiento" se queda la portada */
+  function setTvVideo(src) {
+    if (!tvVideo) return;
+    const useVideo = Boolean(src) && !prefersReducedMotion.matches;
+    if (!useVideo) {
+      tvVideo.pause();
+      tvVideo.hidden = true;
+      tvVideo.removeAttribute("src");
+      tvVideo.load();
+      return;
+    }
+    if (tvVideo.getAttribute("src") !== src) {
+      tvVideo.src = src;
+      tvVideo.preload = "auto";
+    }
+    applyTvVolume();
+    tvVideo.hidden = false;
+    tvVideo.play().catch(() => {});
   }
 
   function playSwitch() {
@@ -491,56 +640,134 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
   const modal = document.querySelector("[data-case-modal]");
   const caseEls = modal && {
     channel: modal.querySelector("[data-case-channel]"),
-    image: modal.querySelector("[data-case-image]"),
-    empty: modal.querySelector("[data-case-empty]"),
-    count: modal.querySelector("[data-case-count]"),
-    thumbs: modal.querySelector("[data-case-thumbs]"),
-    prev: modal.querySelector("[data-case-prev]"),
-    next: modal.querySelector("[data-case-next]"),
+    scroll: modal.querySelector("[data-case-scroll]"),
+    cats: modal.querySelector("[data-case-cats]"),
+    logo: modal.querySelector("[data-case-logo]"),
     titleMain: modal.querySelector("[data-case-title-main]"),
     titleHighlight: modal.querySelector("[data-case-title-highlight]"),
     tags: modal.querySelector("[data-case-tags]"),
-    meta: modal.querySelector("[data-case-meta]"),
-    text: modal.querySelector("[data-case-text]"),
-    metric: modal.querySelector("[data-case-metric]"),
+    summary: modal.querySelector("[data-case-summary]"),
     url: modal.querySelector("[data-case-url]"),
+    feature: modal.querySelector("[data-case-feature]"),
+    text: modal.querySelector("[data-case-text]"),
+    aside: modal.querySelector("[data-case-aside]"),
+    metric: modal.querySelector("[data-case-metric]"),
+    metricValue: modal.querySelector("[data-case-metric-value]"),
+    metricText: modal.querySelector("[data-case-metric-text]"),
+    meta: modal.querySelector("[data-case-meta]"),
+    gallerySection: modal.querySelector("[data-case-gallery-section]"),
+    grid: modal.querySelector("[data-case-grid]"),
+    viewer: modal.querySelector("[data-case-viewer]"),
+    viewerStage: modal.querySelector("[data-viewer-stage]"),
+    viewerCount: modal.querySelector("[data-viewer-count]"),
+    viewerCaption: modal.querySelector("[data-viewer-caption]"),
+    viewerPrev: modal.querySelector("[data-viewer-prev]"),
+    viewerNext: modal.querySelector("[data-viewer-next]"),
+    viewerClose: modal.querySelector("[data-viewer-close]"),
   };
-  const GALLERY_SLOTS = 6;
+  const EMPTY_SLOTS = 3;
   let caseProject = null;
   let caseChannel = 0;
-  let photoIndex = 0;
+  let caseMedia = [];
+  let viewerIndex = -1;
 
-  function caseGallery() {
-    return (caseProject?.caseStudy?.gallery ?? []).filter((photo) => photo && photo.src).slice(0, GALLERY_SLOTS);
-  }
+  const projectName = (project) => [project.title?.main, project.title?.highlight].filter(Boolean).join(" ");
 
-  function showPhoto(index) {
-    const gallery = caseGallery();
-    if (!gallery.length) return;
-    photoIndex = (index + gallery.length) % gallery.length;
-    const photo = gallery[photoIndex];
-    caseEls.image.src = photo.src;
-    caseEls.image.alt = localized(photo.alt) || [caseProject.title?.main, caseProject.title?.highlight].filter(Boolean).join(" ");
-    caseEls.count.textContent = `${pad(photoIndex + 1)} / ${pad(gallery.length)}`;
-    caseEls.thumbs.querySelectorAll("button").forEach((button, i) => button.setAttribute("aria-current", String(i === photoIndex)));
-  }
-
-  function renderCase() {
-    if (!caseProject) return;
-    const project = caseProject;
+  /* media: [{ type: "video" | "page" | "image", src, poster?, title? }]; "gallery" (solo fotos) sigue funcionando */
+  function mediaOf(project) {
     const study = project.caseStudy ?? {};
-    const gallery = caseGallery();
+    const media = Array.isArray(study.media) ? study.media : [];
+    const legacy = (study.gallery ?? []).map((photo) => ({ type: "image", ...photo }));
+    const all = [...media, ...legacy].filter((item) => item && item.src);
+    const matches = (item) => [].concat(item.category ?? []).includes(filter);
+    return [...all.filter(matches), ...all.filter((item) => !matches(item))];
+  }
 
-    caseEls.channel.innerHTML = `CH.<b>${pad(caseChannel + 1)}</b>`;
-    caseEls.titleMain.textContent = project.title?.main ?? "";
-    caseEls.titleHighlight.textContent = project.title?.highlight ?? "";
+  /* pieza destacada arriba: la primera que no sea una página web (video, render, foto) */
+  const featureIndex = () => caseMedia.findIndex((item) => item.type !== "page");
 
-    caseEls.tags.innerHTML = "";
-    (project.tags ?? []).forEach((tag) => {
-      const li = document.createElement("li");
-      li.textContent = tag;
-      caseEls.tags.append(li);
+  function makeVideo(item, { autoplay = false } = {}) {
+    const video = document.createElement("video");
+    video.src = item.src;
+    if (item.poster) video.poster = item.poster;
+    video.controls = true;
+    video.playsInline = true;
+    video.preload = "metadata";
+    if (autoplay && !prefersReducedMotion.matches) {
+      video.muted = true;
+      video.autoplay = true;
+      video.loop = true;
+    }
+    return video;
+  }
+
+  function renderFeature(project) {
+    const feature = caseEls.feature;
+    feature.innerHTML = "";
+    feature.className = "case-hero__media";
+    const featured = caseMedia[featureIndex()];
+    if (featured?.type === "video") {
+      feature.append(makeVideo(featured, { autoplay: true }));
+      return;
+    }
+    const still = featured?.src || project.cover;
+    if (still) {
+      const img = document.createElement("img");
+      img.src = still;
+      img.alt = projectName(project);
+      feature.append(img);
+      return;
+    }
+    feature.classList.add("is-empty");
+    const span = document.createElement("span");
+    span.textContent = t("caseSoon");
+    feature.append(span);
+  }
+
+  function renderStory(project) {
+    const study = project.caseStudy ?? {};
+    caseEls.text.innerHTML = "";
+    const headline = localized(study.headline);
+    if (headline) {
+      const h = document.createElement("h3");
+      h.className = "case-story__headline";
+      h.textContent = headline;
+      caseEls.text.append(h);
+    }
+    const story = localized(study.story);
+    const paragraphs = Array.isArray(story) ? story : story ? [story] : [];
+    if (paragraphs.length) {
+      paragraphs.forEach((text) => {
+        const p = document.createElement("p");
+        p.textContent = text;
+        caseEls.text.append(p);
+      });
+      return;
+    }
+    [
+      ["caseOverview", localized(study.overview) || localized(project.description)],
+      ["caseChallenge", localized(study.challenge)],
+      ["caseSolution", localized(study.solution)],
+      ["caseResults", localized(study.results)],
+    ].forEach(([key, value]) => {
+      if (!value) return;
+      const h = document.createElement("h4");
+      const p = document.createElement("p");
+      h.textContent = t(key);
+      p.textContent = value;
+      caseEls.text.append(h, p);
     });
+  }
+
+  function renderAside(project) {
+    const study = project.caseStudy ?? {};
+    const metricText = localized(project.metric);
+    caseEls.metric.hidden = !metricText;
+    if (metricText) {
+      const match = metricText.match(/^([+\-−]?\s?[\d.,]+\s?%?x?)\s*(.*)$/);
+      caseEls.metricValue.textContent = match ? match[1].replace(/\s/g, "") : metricText;
+      caseEls.metricText.textContent = match ? match[2] : "";
+    }
 
     caseEls.meta.innerHTML = "";
     [
@@ -558,64 +785,166 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
       caseEls.meta.append(wrap);
     });
     caseEls.meta.hidden = !caseEls.meta.children.length;
+    caseEls.aside.hidden = caseEls.metric.hidden && caseEls.meta.hidden;
+  }
 
-    caseEls.text.innerHTML = "";
-    const blocks = [
-      ["caseOverview", localized(study.overview) || localized(project.description)],
-      ["caseChallenge", localized(study.challenge)],
-      ["caseSolution", localized(study.solution)],
-      ["caseResults", localized(study.results)],
-    ];
-    blocks.forEach(([key, value]) => {
-      if (!value) return;
-      const h = document.createElement("h3");
-      const p = document.createElement("p");
-      h.textContent = t(key);
-      p.textContent = value;
-      caseEls.text.append(h, p);
-    });
-
-    const metricText = localized(project.metric);
-    caseEls.metric.hidden = !metricText;
-    caseEls.metric.textContent = metricText;
-
-    caseEls.url.hidden = !project.url;
-    if (project.url) {
-      caseEls.url.href = project.url;
-      caseEls.url.querySelector("[data-i18n]").textContent = project.category === "web" ? t("viewSite") : t("viewProject");
-    }
-
-    /* gallery: 6 slots, real photos first, "coming soon" frames for the rest */
-    caseEls.thumbs.innerHTML = "";
-    for (let i = 0; i < GALLERY_SLOTS; i += 1) {
+  function renderGrid(project) {
+    caseEls.grid.innerHTML = "";
+    const skip = featureIndex();
+    caseMedia.forEach((item, index) => {
+      if (index === skip) return;
       const li = document.createElement("li");
-      const photo = gallery[i];
-      if (photo) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.setAttribute("aria-label", `${t("photo")} ${i + 1}`);
+      li.className = `case-card case-card--${item.type}`;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "case-card__button";
+      const caption = localized(item.title) || `${t("photo")} ${pad(index + 1)}`;
+      button.setAttribute("aria-label", `${caption} — ${t("caseOpen")}`);
+      button.dataset.cursor = "Open";
+
+      const screen = document.createElement("span");
+      screen.className = "case-card__screen";
+      if (item.type === "page") {
+        const chrome = document.createElement("span");
+        chrome.className = "case-card__chrome";
+        chrome.innerHTML = "<i></i><i></i><i></i>";
+        const url = document.createElement("span");
+        url.textContent = (project.url || "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+        chrome.append(url);
+        button.append(chrome);
+      }
+      if (item.type === "video") {
         const img = document.createElement("img");
-        img.src = photo.src;
+        img.src = item.poster || project.cover || "";
         img.alt = "";
         img.loading = "lazy";
-        button.append(img);
-        button.addEventListener("click", () => showPhoto(i));
-        li.append(button);
+        const play = document.createElement("span");
+        play.className = "case-card__play";
+        play.setAttribute("aria-hidden", "true");
+        screen.append(img, play);
       } else {
-        li.className = "is-empty";
-        li.setAttribute("aria-hidden", "true");
-        li.textContent = pad(i + 1);
+        const img = document.createElement("img");
+        img.src = item.src;
+        img.alt = "";
+        img.loading = "lazy";
+        screen.append(img);
       }
-      caseEls.thumbs.append(li);
-    }
+      const label = document.createElement("span");
+      label.className = "case-card__label";
+      label.textContent = caption;
+      button.append(screen, label);
+      button.addEventListener("click", () => openViewer(index));
+      li.append(button);
+      caseEls.grid.append(li);
+    });
 
-    const hasPhotos = gallery.length > 0;
-    caseEls.image.hidden = !hasPhotos;
-    caseEls.empty.hidden = hasPhotos;
-    caseEls.prev.hidden = gallery.length < 2;
-    caseEls.next.hidden = gallery.length < 2;
-    caseEls.count.hidden = !hasPhotos;
-    if (hasPhotos) showPhoto(Math.min(photoIndex, gallery.length - 1));
+    /* si todo el material ya está arriba (p. ej. un solo video), no mostramos la galería */
+    caseEls.gallerySection.hidden = Boolean(caseMedia.length) && !caseEls.grid.children.length;
+    if (!caseMedia.length) {
+      for (let i = 0; i < EMPTY_SLOTS; i += 1) {
+        const li = document.createElement("li");
+        li.className = "case-card case-card--empty";
+        li.setAttribute("aria-hidden", "true");
+        li.innerHTML = `<span class="case-card__screen"><span>${t("caseSoon")}</span></span>`;
+        caseEls.grid.append(li);
+      }
+    }
+  }
+
+  function renderCase() {
+    if (!caseProject) return;
+    const project = caseProject;
+    const study = project.caseStudy ?? {};
+    caseMedia = mediaOf(project);
+
+    caseEls.channel.innerHTML = `CH.<b>${pad(caseChannel + 1)}</b>`;
+    const catLabels = { web: "01 Web", design: t("filterDesign"), video: t("filterVideo") };
+    caseEls.cats.innerHTML = "";
+    const cats = categoriesOf(project);
+    if (cats.length > 1) {
+      ["web", "video", "design"].filter((cat) => cats.includes(cat)).forEach((cat) => {
+        const li = document.createElement("li");
+        li.textContent = catLabels[cat];
+        li.classList.toggle("is-active", cat === filter);
+        caseEls.cats.append(li);
+      });
+    }
+    caseEls.logo.hidden = !study.logo;
+    if (study.logo) {
+      caseEls.logo.src = study.logo;
+      caseEls.logo.alt = study.client || projectName(project);
+    } else {
+      caseEls.logo.removeAttribute("src");
+    }
+    caseEls.titleMain.textContent = project.title?.main ?? "";
+    caseEls.titleHighlight.textContent = project.title?.highlight ?? "";
+
+    caseEls.tags.innerHTML = "";
+    (project.tags ?? []).forEach((tag) => {
+      const li = document.createElement("li");
+      li.textContent = tag;
+      caseEls.tags.append(li);
+    });
+
+    const summary = localized(project.description);
+    caseEls.summary.textContent = summary;
+    caseEls.summary.hidden = !summary;
+
+    setupMainButton(caseEls.url, project);
+
+    renderFeature(project);
+    renderStory(project);
+    renderAside(project);
+    renderGrid(project);
+    if (viewerIndex >= 0) renderViewer();
+  }
+
+  /* ---------- Visor ---------- */
+
+  function renderViewer() {
+    const item = caseMedia[viewerIndex];
+    if (!item) return;
+    const stage = caseEls.viewerStage;
+    stage.querySelector("video")?.pause();
+    stage.innerHTML = "";
+    stage.className = `case-viewer__stage case-viewer__stage--${item.type}`;
+    if (item.type === "video") {
+      const video = makeVideo(item);
+      video.autoplay = true;
+      stage.append(video);
+    } else {
+      const img = document.createElement("img");
+      img.src = item.src;
+      img.alt = localized(item.alt) || localized(item.title) || projectName(caseProject);
+      stage.append(img);
+    }
+    stage.scrollTop = 0;
+    caseEls.viewerCount.textContent = `${pad(viewerIndex + 1)} / ${pad(caseMedia.length)}`;
+    caseEls.viewerCaption.textContent = localized(item.title) || "";
+    caseEls.viewerPrev.hidden = caseMedia.length < 2;
+    caseEls.viewerNext.hidden = caseMedia.length < 2;
+  }
+
+  function openViewer(index) {
+    if (!caseMedia.length) return;
+    viewerIndex = (index + caseMedia.length) % caseMedia.length;
+    caseEls.feature.querySelector("video")?.pause();
+    renderViewer();
+    caseEls.viewer.hidden = false;
+    modal.classList.add("has-viewer");
+    caseEls.viewerStage.focus({ preventScroll: true });
+  }
+
+  function closeViewer() {
+    if (viewerIndex < 0) return false;
+    caseEls.viewerStage.querySelector("video")?.pause();
+    caseEls.viewerStage.innerHTML = "";
+    caseEls.viewer.hidden = true;
+    modal.classList.remove("has-viewer");
+    const opener = caseEls.grid.querySelectorAll(".case-card__button")[0];
+    viewerIndex = -1;
+    opener?.focus?.({ preventScroll: true });
+    return true;
   }
 
   let lastFocus = null;
@@ -623,12 +952,15 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     if (!modal || !list[active]) return;
     caseProject = list[active];
     caseChannel = active;
-    photoIndex = 0;
+    viewerIndex = -1;
+    caseEls.viewer.hidden = true;
+    modal.classList.remove("has-viewer");
     renderCase();
     lastFocus = document.activeElement;
     document.documentElement.classList.add("modal-open");
     if (typeof modal.showModal === "function") modal.showModal();
     else modal.setAttribute("open", "");
+    caseEls.scroll.scrollTop = 0;
     document.dispatchEvent(new CustomEvent("zhaw:modal", { detail: { open: true, host: modal } }));
   }
 
@@ -640,22 +972,41 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
 
   if (modal) {
     caseButton.addEventListener("click", openCase);
-    modal.querySelector("[data-case-close]").addEventListener("click", closeCase);
-    caseEls.prev.addEventListener("click", () => showPhoto(photoIndex - 1));
-    caseEls.next.addEventListener("click", () => showPhoto(photoIndex + 1));
+    caseEls.url.addEventListener("click", (event) => {
+      if (caseEls.url.dataset.mode === "video") caseEls.feature.querySelector("video")?.pause();
+      onMainButton(event);
+    });
+    modal.querySelector("[data-case-close]").addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeCase();
+    });
+    caseEls.viewerClose.addEventListener("click", closeViewer);
+    caseEls.viewerPrev.addEventListener("click", () => openViewer(viewerIndex - 1));
+    caseEls.viewerNext.addEventListener("click", () => openViewer(viewerIndex + 1));
+    caseEls.viewer.addEventListener("click", (event) => {
+      if (event.target === caseEls.viewer || event.target === caseEls.viewerStage) closeViewer();
+    });
     modal.addEventListener("click", (event) => {
       if (event.target === modal) closeCase(); // click on backdrop
     });
+    modal.addEventListener("cancel", (event) => {
+      if (closeViewer()) event.preventDefault(); // Esc cierra primero el visor
+    });
     modal.addEventListener("keydown", (event) => {
-      if (event.key === "ArrowRight") showPhoto(photoIndex + 1);
-      if (event.key === "ArrowLeft") showPhoto(photoIndex - 1);
+      if (viewerIndex < 0) return;
+      if (event.key === "ArrowRight") openViewer(viewerIndex + 1);
+      if (event.key === "ArrowLeft") openViewer(viewerIndex - 1);
     });
     modal.addEventListener("close", () => {
+      closeViewer();
+      caseEls.feature.querySelector("video")?.pause();
       document.documentElement.classList.remove("modal-open");
       document.dispatchEvent(new CustomEvent("zhaw:modal", { detail: { open: false } }));
       lastFocus?.focus?.({ preventScroll: true });
     });
   }
+
+  urlButton.addEventListener("click", onMainButton);
 
   /* ---------- Pinned horizontal scroll (desktop) ---------- */
 
@@ -722,7 +1073,7 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
 
   function applyFilter(nextFilter, { scroll = true } = {}) {
     filter = nextFilter;
-    list = allProjects.filter((project) => project.category === filter);
+    list = allProjects.filter((project) => categoriesOf(project).includes(filter)).map(viewFor);
     active = 0;
 
     filterButtons.forEach((button) => {
@@ -815,6 +1166,84 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
 /* =========================================================
    Hero — mouse parallax on floating stickers
    ========================================================= */
+
+/* =========================================================
+   Reproductor de video (casi pantalla completa)
+   ========================================================= */
+
+(function initVideoPlayer() {
+  const player = document.querySelector("[data-video-player]");
+  if (!player) return;
+  const video = player.querySelector("[data-video-el]");
+  const rotate = player.querySelector("[data-video-rotate]");
+  const portraitPhone = window.matchMedia("(max-width: 820px) and (orientation: portrait)");
+  let dismissed = false;
+  let lastFocus = null;
+
+  const isLandscapeVideo = () => video.videoWidth > video.videoHeight;
+
+  function updateRotateHint() {
+    const show = player.open && !dismissed && portraitPhone.matches && isLandscapeVideo();
+    rotate.hidden = !show;
+    if (show) video.pause();
+  }
+
+  function play() {
+    video.play().catch(() => {});
+  }
+
+  function open(item) {
+    if (!item?.src) return;
+    lastFocus = document.activeElement;
+    dismissed = false;
+    rotate.hidden = true;
+    video.src = item.src;
+    if (item.poster) video.poster = item.poster;
+    else video.removeAttribute("poster");
+    if (typeof player.showModal === "function") player.showModal();
+    else player.setAttribute("open", "");
+    document.documentElement.classList.add("modal-open");
+    document.dispatchEvent(new CustomEvent("zhaw:modal", { detail: { open: true, host: player } }));
+    play();
+  }
+
+  function close() {
+    if (!player.open) return;
+    if (typeof player.close === "function") player.close();
+    else player.removeAttribute("open");
+  }
+
+  video.addEventListener("loadedmetadata", () => {
+    if (video.videoWidth && video.videoHeight) video.style.setProperty("--ar", String(video.videoWidth / video.videoHeight));
+    updateRotateHint();
+  });
+  portraitPhone.addEventListener("change", () => {
+    const wasShown = !rotate.hidden;
+    updateRotateHint();
+    if (wasShown && rotate.hidden && player.open) play();
+  });
+  player.querySelector("[data-video-rotate-ok]").addEventListener("click", () => {
+    dismissed = true;
+    rotate.hidden = true;
+    play();
+  });
+  player.querySelector("[data-video-close]").addEventListener("click", close);
+  player.addEventListener("click", (event) => {
+    if (event.target === player) close();
+  });
+  player.addEventListener("close", () => {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    const caseModal = document.querySelector("[data-case-modal]");
+    const caseOpen = Boolean(caseModal?.open);
+    if (!caseOpen) document.documentElement.classList.remove("modal-open");
+    document.dispatchEvent(new CustomEvent("zhaw:modal", { detail: { open: caseOpen, host: caseModal } }));
+    lastFocus?.focus?.({ preventScroll: true });
+  });
+
+  window.ZHAWVideoPlayer = { open, close };
+})();
 
 (function initHeroParallax() {
   const hero = document.querySelector(".hero");

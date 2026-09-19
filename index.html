@@ -9,7 +9,8 @@
     />
     <meta name="theme-color" content="#000000" />
     <title>ZHAW — Creative Developer</title>
-    <link rel="icon" type="image/png" href="images/Favicon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/brand/favicon-32.png" />
+    <link rel="apple-touch-icon" href="assets/images/brand/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -45,8 +46,8 @@
         </button>
 
         <a class="nav-brand" href="#inicio" aria-label="ZHAW, inicio">
-          <img class="nav-brand__logo" src="images/SVG/Logo-NAV.svg" alt="ZHAW" />
-          <span class="nav-brand__meta">Creative Developer<br />Jorge Gutierrez Vallejo</span>
+          <img class="nav-brand__logo" src="assets/images/brand/logo-nav.svg" alt="ZHAW" />
+          <span class="nav-brand__meta">Creative Developer<br />Jorge Gutiérrez Vallejo</span>
         </a>
 
         <nav class="main-nav" id="main-navigation" aria-label="Navegación principal" data-menu>
@@ -64,7 +65,7 @@
             <span aria-hidden="true">|</span>
             <button type="button" data-language="en" aria-pressed="false">EN</button>
           </div>
-          <img class="smiley" src="assets/images/smiley.png" alt="" aria-hidden="true" />
+          <img class="smiley" src="assets/images/smiley.webp" alt="" aria-hidden="true" />
         </div>
       </div>
     </header>
@@ -80,13 +81,15 @@
         </div>
 
         <div class="hero__content">
-          <div class="brand-art" aria-hidden="true">
-            <img class="brand-art__logo" src="images/SVG/LOGO-HERO.svg" alt="" />
-          </div>
+          <div class="hero__lockup">
+            <div class="brand-art" aria-hidden="true">
+              <img class="brand-art__logo" src="assets/images/brand/logo-hero.svg" alt="" />
+            </div>
 
-          <h1 class="sr-only" id="hero-title">ZHAW — Creative Developer</h1>
-          <p class="hero__name">Jorge Gutierrez Vallejo</p>
-          <p class="hero__role" data-i18n="role">Creative Developer</p>
+            <h1 class="sr-only" id="hero-title">ZHAW — Creative Developer</h1>
+            <p class="hero__name">Jorge Gutiérrez Vallejo</p>
+            <p class="hero__role" data-i18n="role">Creative Developer</p>
+          </div>
 
           <p class="hero__statement" data-i18n="statement">
             <strong>Súbele el volumen a tu proyecto.</strong>
@@ -116,20 +119,20 @@
         <div class="hero__portrait-frame">
           <img
             class="hero__portrait"
-            src="assets/images/jorge-hero.png"
-            alt="Jorge Gutierrez Vallejo, Creative Developer"
+            src="assets/images/jorge-hero.webp"
+            alt="Jorge Gutiérrez Vallejo, Creative Developer"
           />
         </div>
 
         <div class="mascot" aria-hidden="true">
-          <img src="assets/images/mascot-sheet.png" alt="" />
+          <img src="assets/images/mascot-sheet.webp" alt="" />
         </div>
 
         <p class="mobile-note" aria-hidden="true">Good design.<br />Louder results.</p>
 
         <img
           class="parental-sticker"
-          src="images/Parental.png"
+          src="assets/images/brand/parental.webp"
           alt="Ideas fuel progress"
         />
       </section>
@@ -148,15 +151,15 @@
                 <img class="filter-tape__off" src="assets/images/projects/filter-web-off.webp" alt="" width="478" height="152" />
                 <span class="sr-only">01 Web</span>
               </button>
-              <button class="filter-tape" type="button" data-filter="design" aria-pressed="false">
-                <img class="filter-tape__on" src="assets/images/projects/filter-design-on.webp" alt="" width="473" height="157" loading="lazy" />
-                <img class="filter-tape__off" src="assets/images/projects/filter-design-off.webp" alt="" width="473" height="157" />
-                <span class="sr-only" data-i18n="filterDesign">02 Diseño</span>
-              </button>
               <button class="filter-tape" type="button" data-filter="video" aria-pressed="false">
                 <img class="filter-tape__on" src="assets/images/projects/filter-video-on.webp" alt="" width="463" height="157" loading="lazy" />
                 <img class="filter-tape__off" src="assets/images/projects/filter-video-off.webp" alt="" width="463" height="157" />
-                <span class="sr-only" data-i18n="filterVideo">03 Video</span>
+                <span class="sr-only" data-i18n="filterVideo">02 Video</span>
+              </button>
+              <button class="filter-tape" type="button" data-filter="design" aria-pressed="false">
+                <img class="filter-tape__on" src="assets/images/projects/filter-design-on.webp" alt="" width="473" height="157" loading="lazy" />
+                <img class="filter-tape__off" src="assets/images/projects/filter-design-off.webp" alt="" width="473" height="157" />
+                <span class="sr-only" data-i18n="filterDesign">03 Diseño</span>
               </button>
               <img class="projects__sticker projects__sticker--lightning" src="assets/images/stickers/lightning.webp" alt="" aria-hidden="true" loading="lazy" />
             </div>
@@ -165,18 +168,30 @@
             <div class="zhaw-tv" data-tv>
               <div class="zhaw-tv__screen" aria-live="polite">
                 <img class="zhaw-tv__cover" src="" alt="" data-tv-cover hidden />
+                <video class="zhaw-tv__cover zhaw-tv__video" muted loop playsinline preload="none" aria-hidden="true" data-tv-video hidden></video>
+                <div class="zhaw-tv__site" data-tv-site hidden>
+                  <img src="" alt="" data-tv-site-img />
+                </div>
                 <div class="zhaw-tv__bars" data-tv-bars aria-hidden="true">
                   <span class="zhaw-tv__bars-label" data-tv-bars-label>ZHAW TV</span>
                 </div>
                 <span class="zhaw-tv__channel" data-tv-channel aria-hidden="true">CH.01</span>
+                <span class="zhaw-tv__osd" data-tv-osd aria-live="polite" hidden></span>
                 <div class="zhaw-tv__noise" aria-hidden="true">
                   <span>NO SIGNAL</span>
                 </div>
                 <div class="zhaw-tv__scanlines" aria-hidden="true"></div>
               </div>
               <img class="zhaw-tv__frame" src="assets/images/projects/zhaw-tv.webp" alt="" width="1336" height="1076" aria-hidden="true" />
+              <!-- En el filtro Web el televisor se cambia por este computador -->
+              <img class="zhaw-tv__frame zhaw-tv__frame--pc" src="assets/images/projects/pc-frame.webp" alt="" width="1402" height="1122" aria-hidden="true" />
               <button class="zhaw-tv__knob zhaw-tv__knob--prev" type="button" data-project-prev aria-label="Canal anterior" data-i18n-aria="prevChannel"></button>
               <button class="zhaw-tv__knob zhaw-tv__knob--next" type="button" data-project-next aria-label="Canal siguiente" data-i18n-aria="nextChannel"></button>
+              <!-- TV: volumen · PC: botones del mouse -->
+              <button class="zhaw-tv__knob zhaw-tv__knob--vol-down" type="button" data-tv-vol="-1" aria-label="Bajar volumen" data-i18n-aria="volDown"></button>
+              <button class="zhaw-tv__knob zhaw-tv__knob--vol-up" type="button" data-tv-vol="1" aria-label="Subir volumen" data-i18n-aria="volUp"></button>
+              <button class="zhaw-tv__knob zhaw-tv__knob--mouse zhaw-tv__knob--mouse-left" type="button" data-project-prev aria-label="Proyecto anterior" data-i18n-aria="prevProject"></button>
+              <button class="zhaw-tv__knob zhaw-tv__knob--mouse zhaw-tv__knob--mouse-right" type="button" data-project-next aria-label="Proyecto siguiente" data-i18n-aria="nextProject"></button>
             </div>
 
             <!-- Info del proyecto -->
@@ -237,7 +252,7 @@
             <div class="about__polaroid">
               <img
                 src="assets/images/about/jorge-about.webp"
-                alt="Jorge Gutierrez Vallejo sonriendo en su escritorio de trabajo"
+                alt="Jorge Gutiérrez Vallejo sonriendo en su escritorio de trabajo"
                 width="800"
                 height="1000"
                 loading="lazy"
@@ -496,8 +511,8 @@
     <footer class="site-footer">
       <div class="site-footer__inner">
         <div class="site-footer__brand">
-          <img src="images/SVG/Logo-NAV.svg" alt="ZHAW" width="120" height="60" loading="lazy" />
-          <p>Creative Developer<br />Jorge Gutierrez Vallejo</p>
+          <img src="assets/images/brand/logo-nav.svg" alt="ZHAW" width="120" height="60" loading="lazy" />
+          <p>Creative Developer<br />Jorge Gutiérrez Vallejo</p>
         </div>
 
         <nav class="site-footer__nav" aria-label="Pie de página" data-i18n-aria="footerNav">
@@ -529,47 +544,86 @@
 
     <!-- ============ CASE STUDY MODAL ============ -->
     <dialog class="case-modal" data-case-modal aria-labelledby="case-title">
-      <div class="case-modal__inner">
-        <header class="case-modal__header">
-          <p class="case-modal__channel" data-case-channel>CH.01</p>
-          <button class="case-modal__close icon-button" type="button" data-case-close aria-label="Cerrar" data-i18n-aria="close">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-          </button>
-        </header>
+      <header class="case-modal__header">
+        <p class="case-modal__channel" data-case-channel>CH.01</p>
+        <button class="case-modal__close icon-button" type="button" data-case-close aria-label="Cerrar" data-i18n-aria="close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </header>
 
-        <div class="case-modal__body">
-          <div class="case-gallery" data-case-gallery>
-            <figure class="case-gallery__stage">
-              <img class="case-gallery__image" src="" alt="" data-case-image hidden />
-              <div class="case-gallery__empty" data-case-empty>
-                <span data-i18n="caseSoon">Fotos próximamente</span>
-              </div>
-              <button class="case-gallery__nav case-gallery__nav--prev icon-button" type="button" data-case-prev aria-label="Foto anterior" data-i18n-aria="prevPhoto">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-              </button>
-              <button class="case-gallery__nav case-gallery__nav--next icon-button" type="button" data-case-next aria-label="Foto siguiente" data-i18n-aria="nextPhoto">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
-              </button>
-              <figcaption class="case-gallery__count" data-case-count></figcaption>
-            </figure>
-            <ol class="case-gallery__thumbs" data-case-thumbs></ol>
-          </div>
+      <div class="case-modal__inner" data-case-scroll>
 
-          <div class="case-info">
+        <!-- Portada del caso: info + medio destacado (video o imagen) -->
+        <section class="case-hero">
+          <div class="case-hero__info">
+            <img class="case-hero__logo" src="" alt="" data-case-logo hidden />
+            <ul class="case-hero__cats" data-case-cats></ul>
             <h2 class="case-info__title" id="case-title">
               <span data-case-title-main></span>
               <span class="case-info__highlight" data-case-title-highlight></span>
             </h2>
             <ul class="project-panel__tags" data-case-tags></ul>
-            <dl class="case-info__meta" data-case-meta></dl>
-            <div class="case-info__text" data-case-text></div>
-            <p class="project-panel__metric" data-case-metric hidden></p>
+            <p class="case-hero__summary" data-case-summary></p>
             <a class="button button--lime" href="#" target="_blank" rel="noopener" data-case-url>
               <span data-i18n="viewSite">Ver sitio</span>
               <span class="button__arrow" aria-hidden="true">→</span>
             </a>
           </div>
+          <figure class="case-hero__media" data-case-feature></figure>
+        </section>
+
+        <!-- Historia del proyecto + ficha -->
+        <section class="case-story">
+          <article class="case-story__text" data-case-text></article>
+          <aside class="case-story__aside" data-case-aside>
+            <div class="case-kpi" data-case-metric hidden>
+              <span class="case-kpi__label" data-i18n="caseResultLabel">Resultado</span>
+              <strong class="case-kpi__value" data-case-metric-value></strong>
+              <span class="case-kpi__text" data-case-metric-text></span>
+            </div>
+            <dl class="case-info__meta" data-case-meta></dl>
+          </aside>
+        </section>
+
+        <!-- Galería: páginas web, fotos y videos -->
+        <section class="case-gallery" data-case-gallery-section>
+          <h3 class="case-section-title" data-i18n="caseGallery">Galería</h3>
+          <ol class="case-gallery__grid" data-case-grid></ol>
+        </section>
+      </div>
+
+      <!-- Visor a pantalla completa -->
+      <div class="case-viewer" data-case-viewer hidden>
+        <div class="case-viewer__bar">
+          <p class="case-viewer__title"><b data-viewer-count>01 / 01</b> <span data-viewer-caption></span></p>
+          <div class="case-viewer__controls">
+            <button class="icon-button" type="button" data-viewer-prev aria-label="Anterior" data-i18n-aria="prevPhoto">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+            </button>
+            <button class="icon-button" type="button" data-viewer-next aria-label="Siguiente" data-i18n-aria="nextPhoto">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+            </button>
+            <button class="icon-button icon-button--lime" type="button" data-viewer-close aria-label="Cerrar" data-i18n-aria="close">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
         </div>
+        <div class="case-viewer__stage" data-viewer-stage tabindex="-1"></div>
+      </div>
+    </dialog>
+    <!-- Reproductor de video casi a pantalla completa -->
+    <dialog class="video-player" data-video-player aria-label="Video">
+      <button class="video-player__close icon-button icon-button--lime" type="button" data-video-close aria-label="Cerrar" data-i18n-aria="close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+      <video class="video-player__video" controls playsinline preload="metadata" data-video-el></video>
+      <div class="video-player__rotate" data-video-rotate hidden>
+        <span class="video-player__phone" aria-hidden="true"></span>
+        <p data-i18n="rotateHint">Gira tu teléfono para ver el video en grande</p>
+        <button class="button button--lime" type="button" data-video-rotate-ok>
+          <span data-i18n="rotateOk">Verlo así</span>
+          <span class="button__arrow" aria-hidden="true">→</span>
+        </button>
       </div>
     </dialog>
   </body>

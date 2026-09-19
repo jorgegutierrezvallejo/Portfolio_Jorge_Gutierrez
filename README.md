@@ -1,6 +1,6 @@
-# ZHAW — Portafolio de Jorge Gutierrez Vallejo
+# ZHAW — Portafolio de Jorge Gutiérrez Vallejo
 
-Portafolio personal bilingüe (ES / EN) de **Jorge Gutierrez Vallejo (Zhaw)**, Creative Developer.
+Portafolio personal bilingüe (ES / EN) de **Jorge Gutiérrez Vallejo (Zhaw)**, Creative Developer.
 
 > Súbele el volumen a tu proyecto.
 
@@ -19,8 +19,7 @@ index.html         Página principal
 styles.css         Estilos
 script.js          Interacciones y traducciones ES / EN
 data/projects.js   Proyectos de la sección ZHAW TV
-assets/            Imágenes, fuentes, íconos y CV
-images/            Logo y favicon
+assets/            Imágenes, logos y favicon (brand/), fuentes WOFF2, videos y CV
 ```
 
 ## Diseño
