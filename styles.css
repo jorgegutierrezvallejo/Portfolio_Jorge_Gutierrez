@@ -2678,6 +2678,69 @@ a:focus-visible {
   align-items: center;
 }
 
+.case-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.case-hero__actions .button[hidden] {
+  display: none;
+}
+
+/* YouTube: miniatura en la galería e iframe en el visor */
+.case-card--youtube .case-card__screen img {
+  object-position: center;
+}
+
+.case-viewer__stage--youtube {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.case-viewer__stage--youtube iframe {
+  width: min(100%, calc((100svh - 160px) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background: #000;
+}
+
+.case-viewer__yt-thumb {
+  position: relative;
+  display: block;
+  width: min(100%, 960px);
+}
+
+.case-viewer__yt-thumb img {
+  width: 100%;
+  max-height: none;
+}
+
+.case-viewer__yt-thumb span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding: 12px 20px;
+  color: var(--black);
+  background: var(--lime);
+  font-weight: 800;
+  text-transform: uppercase;
+  translate: -50% -50%;
+  box-shadow: 5px 5px 0 var(--violet);
+}
+
+.case-viewer__yt-link {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.case-viewer__yt-link:hover {
+  color: var(--lime);
+}
+
 .case-hero__info {
   display: flex;
   min-width: 0;
@@ -2856,6 +2919,25 @@ a:focus-visible {
   gap: 20px;
 }
 
+.case-kpis {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.case-kpis[hidden] {
+  display: none;
+}
+
+.case-kpis__note {
+  margin: 4px 0 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .case-kpi {
   display: flex;
   flex-direction: column;
@@ -2894,6 +2976,32 @@ a:focus-visible {
 
 .case-kpi__text:empty {
   display: none;
+}
+
+.case-kpi--list ul {
+  display: grid;
+  gap: 10px;
+  margin: 6px 0 0;
+  padding: 0 0 0 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* segunda métrica en adelante: tarjeta violeta, girada al otro lado */
+.case-kpi + .case-kpi {
+  color: var(--white);
+  background: var(--violet);
+  box-shadow: 6px 6px 0 var(--lime);
+  transform: rotate(1deg);
+}
+
+.case-kpi + .case-kpi .case-kpi__value {
+  font-size: clamp(2.4rem, 4vw, 3.6rem);
+}
+
+.case-kpi + .case-kpi .case-kpi__text {
+  font-size: 1rem;
 }
 
 .case-info__meta {
@@ -3173,6 +3281,7 @@ a:focus-visible {
     order: -1;
   }
 
+  .case-hero__actions .button,
   .case-hero__info .button {
     width: 100%;
   }

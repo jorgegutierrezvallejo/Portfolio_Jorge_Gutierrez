@@ -66,7 +66,9 @@ const copy = {
     caseChallenge: "El reto",
     caseSolution: "La solución",
     caseResults: "Resultados",
+    caseResultsLabel: "Resultados",
     viewVideo: "Ver video",
+    watchOnYoutube: "Ver en YouTube",
     volUp: "Subir volumen",
     volDown: "Bajar volumen",
     rotateHint: "Gira tu teléfono para ver el video en grande",
@@ -160,7 +162,9 @@ const copy = {
     caseChallenge: "The challenge",
     caseSolution: "The solution",
     caseResults: "Results",
+    caseResultsLabel: "Results",
     viewVideo: "Watch video",
+    watchOnYoutube: "Watch on YouTube",
     volUp: "Volume up",
     volDown: "Volume down",
     rotateHint: "Turn your phone to watch the video full size",
@@ -354,12 +358,27 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
   /* video principal del proyecto: project.video, o el primero de caseStudy.media */
   const videoOf = (project) => {
     if (project.video) return typeof project.video === "string" ? { src: project.video } : project.video;
-    return (project.caseStudy?.media ?? []).find((item) => item?.type === "video" && item.src) ?? null;
+    return (
+      (project.caseStudy?.media ?? []).find(
+        (item) => (item?.type === "video" && item.src) || (item?.type === "youtube" && item.id)
+      ) ?? null
+    );
   };
   /* botón principal: en el filtro Video abre el reproductor; si no, enlaza al sitio */
   function setupMainButton(button, project) {
-    const video = filter === "video" ? videoOf(project) : null;
+    /* primaryLink: el botón principal lleva siempre al enlace del proyecto (url + urlLabel) */
+    const video = filter === "video" && !project.primaryLink ? videoOf(project) : null;
     const label = button.querySelector("[data-i18n]");
+    if (video?.type === "youtube") {
+      /* video de YouTube: se abre en YouTube */
+      button.hidden = false;
+      button.dataset.mode = "youtube";
+      button.href = `https://www.youtube.com/watch?v=${video.id}`;
+      button.target = "_blank";
+      label.textContent = t("viewVideo");
+      button._video = null;
+      return;
+    }
     if (video) {
       button.hidden = false;
       button.dataset.mode = "video";
@@ -375,7 +394,7 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     button.hidden = !project.url;
     if (project.url) {
       button.href = project.url;
-      label.textContent = siteLabel();
+      label.textContent = (project.primaryLink && localized(project.urlLabel)) || siteLabel();
     }
   }
   function onMainButton(event) {
@@ -479,7 +498,7 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     tagsList.innerHTML = "";
     (project.tags ?? []).forEach((tag) => {
       const li = document.createElement("li");
-      li.textContent = tag;
+      li.textContent = localized(tag);
       tagsList.append(li);
     });
 
@@ -551,8 +570,11 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
   });
 
   /* Web: computador con la página completa haciendo scroll */
+  /* si el proyecto tiene coverVideo, en el computador se ve el video en vez de la captura */
   const siteOf = (project) =>
-    project.screen || (project.caseStudy?.media ?? []).find((item) => item?.type === "page" && item.src)?.src || "";
+    project.coverVideo && !project.screen
+      ? ""
+      : project.screen || (project.caseStudy?.media ?? []).find((item) => item?.type === "page" && item.src)?.src || "";
 
   function measureSite() {
     if (tvSite.hidden || !tvSiteImg.naturalWidth) return;
@@ -648,12 +670,12 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     tags: modal.querySelector("[data-case-tags]"),
     summary: modal.querySelector("[data-case-summary]"),
     url: modal.querySelector("[data-case-url]"),
+    link: modal.querySelector("[data-case-link]"),
+    linkLabel: modal.querySelector("[data-case-link-label]"),
     feature: modal.querySelector("[data-case-feature]"),
     text: modal.querySelector("[data-case-text]"),
     aside: modal.querySelector("[data-case-aside]"),
-    metric: modal.querySelector("[data-case-metric]"),
-    metricValue: modal.querySelector("[data-case-metric-value]"),
-    metricText: modal.querySelector("[data-case-metric-text]"),
+    metrics: modal.querySelector("[data-case-metrics]"),
     meta: modal.querySelector("[data-case-meta]"),
     gallerySection: modal.querySelector("[data-case-gallery-section]"),
     grid: modal.querySelector("[data-case-grid]"),
@@ -678,13 +700,17 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     const study = project.caseStudy ?? {};
     const media = Array.isArray(study.media) ? study.media : [];
     const legacy = (study.gallery ?? []).map((photo) => ({ type: "image", ...photo }));
-    const all = [...media, ...legacy].filter((item) => item && item.src);
+    const all = [...media, ...legacy].filter((item) => item && (item.src || (item.type === "youtube" && item.id)));
     const matches = (item) => [].concat(item.category ?? []).includes(filter);
     return [...all.filter(matches), ...all.filter((item) => !matches(item))];
   }
 
   /* pieza destacada arriba: la primera que no sea una página web (video, render, foto) */
-  const featureIndex = () => caseMedia.findIndex((item) => item.type !== "page");
+  /* caseStudy.feature: "cover" → arriba va la portada y todas las piezas quedan en la galería */
+  const featureIndex = () =>
+    caseProject?.caseStudy?.feature === "cover"
+      ? -1
+      : caseMedia.findIndex((item) => item.type !== "page" && item.type !== "youtube");
 
   function makeVideo(item, { autoplay = false } = {}) {
     const video = document.createElement("video");
@@ -708,6 +734,11 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     const featured = caseMedia[featureIndex()];
     if (featured?.type === "video") {
       feature.append(makeVideo(featured, { autoplay: true }));
+      return;
+    }
+    /* sin pieza destacada pero con video de portada: se muestra en loop */
+    if (!featured && project.coverVideo) {
+      feature.append(makeVideo({ src: project.coverVideo, poster: project.cover }, { autoplay: true }));
       return;
     }
     const still = featured?.src || project.cover;
@@ -735,11 +766,25 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
       caseEls.text.append(h);
     }
     const story = localized(study.story);
+    /* story: lista de párrafos; un elemento { heading, text } agrega un subtítulo */
     const paragraphs = Array.isArray(story) ? story : story ? [story] : [];
     if (paragraphs.length) {
-      paragraphs.forEach((text) => {
+      paragraphs.forEach((item) => {
+        if (item && typeof item === "object") {
+          if (item.heading) {
+            const h = document.createElement("h4");
+            h.textContent = item.heading;
+            caseEls.text.append(h);
+          }
+          if (item.text) {
+            const p = document.createElement("p");
+            p.textContent = item.text;
+            caseEls.text.append(p);
+          }
+          return;
+        }
         const p = document.createElement("p");
-        p.textContent = text;
+        p.textContent = item;
         caseEls.text.append(p);
       });
       return;
@@ -761,31 +806,75 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
 
   function renderAside(project) {
     const study = project.caseStudy ?? {};
-    const metricText = localized(project.metric);
-    caseEls.metric.hidden = !metricText;
-    if (metricText) {
-      const match = metricText.match(/^([+\-−]?\s?[\d.,]+\s?%?x?)\s*(.*)$/);
-      caseEls.metricValue.textContent = match ? match[1].replace(/\s/g, "") : metricText;
-      caseEls.metricText.textContent = match ? match[2] : "";
+    /* métricas: caseStudy.metrics [{ value, text }] o, si no hay, el metric del proyecto */
+    let metrics = (study.metrics ?? []).map((m) => ({ value: m.value, text: localized(m.text) })).filter((m) => m.value);
+    if (!metrics.length) {
+      const metricText = localized(project.metric);
+      const match = metricText && metricText.match(/^([+\-−]?\s?[\d.,]+\s?%?x?)\s*(.*)$/);
+      if (metricText) metrics = [{ value: match ? match[1].replace(/\s/g, "") : metricText, text: match ? match[2] : "" }];
     }
+    caseEls.metrics.innerHTML = "";
+    metrics.forEach((m, i) => {
+      const card = document.createElement("div");
+      card.className = "case-kpi";
+      if (i === 0) {
+        const label = document.createElement("span");
+        label.className = "case-kpi__label";
+        label.textContent = t(metrics.length > 1 ? "caseResultsLabel" : "caseResultLabel");
+        card.append(label);
+      }
+      const value = document.createElement("strong");
+      value.className = "case-kpi__value";
+      value.textContent = m.value;
+      const text = document.createElement("span");
+      text.className = "case-kpi__text";
+      text.textContent = m.text || "";
+      card.append(value, text);
+      caseEls.metrics.append(card);
+    });
+    const note = localized(study.metricsNote);
+    if (metrics.length && note) {
+      const p = document.createElement("p");
+      p.className = "case-kpis__note";
+      p.textContent = note;
+      caseEls.metrics.append(p);
+    }
+    /* logros sin cifra: caseStudy.highlights { es: ["…"], en: ["…"] } */
+    const highlights = localized(study.highlights);
+    if (Array.isArray(highlights) && highlights.length) {
+      const card = document.createElement("div");
+      card.className = "case-kpi case-kpi--list";
+      const label = document.createElement("span");
+      label.className = "case-kpi__label";
+      label.textContent = t("caseResultsLabel");
+      const ul = document.createElement("ul");
+      highlights.forEach((text) => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        ul.append(li);
+      });
+      card.append(label, ul);
+      caseEls.metrics.append(card);
+    }
+    caseEls.metrics.hidden = !caseEls.metrics.children.length;
 
+    /* ficha: cliente, créditos extra (agencia, colaboradores…), año y rol */
     caseEls.meta.innerHTML = "";
-    [
-      ["caseClient", study.client],
-      ["caseYear", study.year],
-      ["caseRole", localized(study.role)],
-    ].forEach(([key, value]) => {
+    const rows = [["caseClient", study.client]];
+    (study.credits ?? []).forEach((c) => rows.push([localized(c.label), localized(c.value), true]));
+    rows.push(["caseYear", study.year], ["caseRole", localized(study.role)]);
+    rows.forEach(([key, value, literal]) => {
       if (!value) return;
       const wrap = document.createElement("div");
       const dt = document.createElement("dt");
       const dd = document.createElement("dd");
-      dt.textContent = t(key);
+      dt.textContent = literal ? key : t(key);
       dd.textContent = value;
       wrap.append(dt, dd);
       caseEls.meta.append(wrap);
     });
     caseEls.meta.hidden = !caseEls.meta.children.length;
-    caseEls.aside.hidden = caseEls.metric.hidden && caseEls.meta.hidden;
+    caseEls.aside.hidden = caseEls.metrics.hidden && caseEls.meta.hidden;
   }
 
   function renderGrid(project) {
@@ -813,9 +902,9 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
         chrome.append(url);
         button.append(chrome);
       }
-      if (item.type === "video") {
+      if (item.type === "video" || item.type === "youtube") {
         const img = document.createElement("img");
-        img.src = item.poster || project.cover || "";
+        img.src = item.type === "youtube" ? `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg` : item.poster || project.cover || "";
         img.alt = "";
         img.loading = "lazy";
         const play = document.createElement("span");
@@ -882,7 +971,7 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     caseEls.tags.innerHTML = "";
     (project.tags ?? []).forEach((tag) => {
       const li = document.createElement("li");
-      li.textContent = tag;
+      li.textContent = localized(tag);
       caseEls.tags.append(li);
     });
 
@@ -891,6 +980,13 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
     caseEls.summary.hidden = !summary;
 
     setupMainButton(caseEls.url, project);
+    /* si el botón principal abre un video, el enlace del proyecto va como segundo botón */
+    const showLink = ["video", "youtube"].includes(caseEls.url.dataset.mode) && Boolean(project.url);
+    caseEls.link.hidden = !showLink;
+    if (showLink) {
+      caseEls.link.href = project.url;
+      caseEls.linkLabel.textContent = localized(project.urlLabel) || t("viewProject");
+    }
 
     renderFeature(project);
     renderStory(project);
@@ -912,6 +1008,30 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
       const video = makeVideo(item);
       video.autoplay = true;
       stage.append(video);
+    } else if (item.type === "youtube" && location.protocol === "file:") {
+      /* YouTube no permite incrustar videos en páginas abiertas como archivo (error 153):
+         en local mostramos la miniatura con enlace; publicado en un servidor se ve el reproductor */
+      const link = document.createElement("a");
+      link.className = "case-viewer__yt-thumb";
+      link.href = `https://www.youtube.com/watch?v=${item.id}`;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.innerHTML = `<img src="https://i.ytimg.com/vi/${item.id}/hqdefault.jpg" alt=""><span>${t("watchOnYoutube")} ↗</span>`;
+      stage.append(link);
+    } else if (item.type === "youtube") {
+      const frame = document.createElement("iframe");
+      frame.src = `https://www.youtube-nocookie.com/embed/${item.id}?autoplay=1&rel=0`;
+      frame.title = localized(item.title) || "YouTube";
+      frame.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      frame.allowFullscreen = true;
+      frame.referrerPolicy = "strict-origin-when-cross-origin";
+      const link = document.createElement("a");
+      link.className = "case-viewer__yt-link";
+      link.href = `https://www.youtube.com/watch?v=${item.id}`;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = `${t("watchOnYoutube")} ↗`;
+      stage.append(frame, link);
     } else {
       const img = document.createElement("img");
       img.src = item.src;

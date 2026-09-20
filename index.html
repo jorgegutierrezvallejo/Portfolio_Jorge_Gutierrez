@@ -362,6 +362,7 @@
             <ul class="skill-card__logos">
               <li><img src="assets/images/skills/wordpress.svg" alt="" width="44" height="44" loading="lazy" /><span>WordPress</span></li>
               <li><img src="assets/images/skills/brizy.svg" alt="" width="44" height="44" loading="lazy" /><span>Brizy</span></li>
+              <li><img src="assets/images/skills/elementor.svg" alt="" width="44" height="44" loading="lazy" /><span>Elementor</span></li>
             </ul>
             <ul class="skill-card__chips">
               <li data-i18n="chipContent">Arquitectura de contenidos</li>
@@ -564,10 +565,16 @@
             </h2>
             <ul class="project-panel__tags" data-case-tags></ul>
             <p class="case-hero__summary" data-case-summary></p>
-            <a class="button button--lime" href="#" target="_blank" rel="noopener" data-case-url>
-              <span data-i18n="viewSite">Ver sitio</span>
-              <span class="button__arrow" aria-hidden="true">→</span>
-            </a>
+            <div class="case-hero__actions">
+              <a class="button button--lime" href="#" target="_blank" rel="noopener" data-case-url>
+                <span data-i18n="viewSite">Ver sitio</span>
+                <span class="button__arrow" aria-hidden="true">→</span>
+              </a>
+              <a class="button button--outline" href="#" target="_blank" rel="noopener" data-case-link hidden>
+                <span data-case-link-label>Ver proyecto</span>
+                <span class="button__arrow" aria-hidden="true">↗</span>
+              </a>
+            </div>
           </div>
           <figure class="case-hero__media" data-case-feature></figure>
         </section>
@@ -576,11 +583,7 @@
         <section class="case-story">
           <article class="case-story__text" data-case-text></article>
           <aside class="case-story__aside" data-case-aside>
-            <div class="case-kpi" data-case-metric hidden>
-              <span class="case-kpi__label" data-i18n="caseResultLabel">Resultado</span>
-              <strong class="case-kpi__value" data-case-metric-value></strong>
-              <span class="case-kpi__text" data-case-metric-text></span>
-            </div>
+            <div class="case-kpis" data-case-metrics hidden></div>
             <dl class="case-info__meta" data-case-meta></dl>
           </aside>
         </section>

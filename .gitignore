@@ -2,3 +2,9 @@
 .qodo/
 *.psd
 *.ai
+
+# Archivos de trabajo (no subir)
+AGENTS.md
+*.local.md
+CLAUDE.md
+*.zip
