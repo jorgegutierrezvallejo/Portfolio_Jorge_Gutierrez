@@ -30,6 +30,8 @@ menu?.querySelectorAll("a").forEach((link) => {
 
 const copy = {
   es: {
+    pageTitle: "Jorge Gutiérrez Vallejo | Diseño y Desarrollo Web Freelance",
+    heroH1: "Jorge Gutiérrez Vallejo (Zhaw): diseñador y desarrollador web freelance en Colombia",
     navHome: "Inicio",
     navAbout: "Acerca de mí",
     navProjects: "Proyectos",
@@ -42,6 +44,14 @@ const copy = {
     viewProjects: "Ver proyectos",
     letsTalk: "Hablemos",
     downloadCv: "Descargar CV",
+    waCta: "Escríbeme por WhatsApp",
+    waText: "Hola Jorge, vi tu portafolio y quiero hablar de un proyecto.",
+    dockHome: "Inicio",
+    dockProjects: "Proyectos",
+    dockAbout: "Sobre mí",
+    dockContact: "Contacto",
+    menuOpen: "Abrir menú",
+    menuClose: "Cerrar menú",
 
     projectsTitle: "Proyectos",
     filtersLabel: "Filtrar proyectos",
@@ -84,9 +94,9 @@ const copy = {
 
     aboutKicker: "Creatividad + Estrategia + Tecnología",
     aboutCopy:
-      "<p>Soy Jorge, pero puedes llamarme Zhaw, un Creative Developer que entiende que un buen código necesita un gran diseño.</p><p>Mi camino empezó en la publicidad y evolucionó de forma natural hacia lo digital: desde el branding y el formato audiovisual, hasta la creación de interfaces y el desarrollo de software puro.</p><p>Hoy mezclo estrategia, diseño y tecnología para dar vida a productos digitales con carácter y resultados reales.</p>",
+      "<p>Soy Jorge, pero puedes llamarme Zhaw, un Creative Developer que entiende que un buen código necesita un gran diseño.</p><p>Mi camino empezó en la publicidad y evolucionó hacia lo digital: del branding y lo audiovisual a las interfaces y el desarrollo. Hoy mezclo estrategia, diseño y tecnología para crear productos digitales con carácter y resultados reales.</p>",
     aboutCta: "Conoce más",
-    aboutScribble: "Ideas<br />Diseño<br />Código<br />Resultados",
+    aboutScribble: "Pensar.<br />Trazar.<br />Construir.<br />Romperla.",
     aboutStatsLabel: "Datos clave",
     statDesign: "Años diseñando",
     statWeb: "Años en web",
@@ -113,7 +123,7 @@ const copy = {
     edu1Dates: "Junio 2026 — Septiembre 2026",
     edu2Degree: "Profesional en Publicidad y Marketing Creativo",
     edu2Dates: "Julio 2012 — Octubre 2017",
-    edu3Degree: "Técnico en Medios Impresos",
+    edu3Degree: "Técnico en Diseño para Medios Impresos",
     edu3Dates: "Julio 2010 — Julio 2011",
 
     contactTitle: "Contacto",
@@ -126,6 +136,8 @@ const copy = {
     backToTop: "Volver arriba",
   },
   en: {
+    pageTitle: "Jorge Gutiérrez Vallejo | Freelance Web Designer & Developer",
+    heroH1: "Jorge Gutiérrez Vallejo (Zhaw): freelance web designer and developer based in Colombia",
     navHome: "Home",
     navAbout: "About",
     navProjects: "Projects",
@@ -138,6 +150,14 @@ const copy = {
     viewProjects: "View projects",
     letsTalk: "Let's talk",
     downloadCv: "Download CV",
+    waCta: "Message me on WhatsApp",
+    waText: "Hi Jorge, I saw your portfolio and I'd like to talk about a project.",
+    dockHome: "Home",
+    dockProjects: "Projects",
+    dockAbout: "About",
+    dockContact: "Contact",
+    menuOpen: "Open menu",
+    menuClose: "Close menu",
 
     projectsTitle: "Projects",
     filtersLabel: "Filter projects",
@@ -180,9 +200,9 @@ const copy = {
 
     aboutKicker: "Creativity + Strategy + Technology",
     aboutCopy:
-      "<p>I'm Jorge, but you can call me Zhaw — a Creative Developer who knows that good code needs great design.</p><p>My path started in advertising and evolved naturally into digital: from branding and audiovisual formats to building interfaces and pure software development.</p><p>Today I blend strategy, design and technology to bring digital products to life with character and real results.</p>",
+      "<p>I'm Jorge, but you can call me Zhaw — a Creative Developer who knows that good code needs great design.</p><p>My path started in advertising and evolved into digital: from branding and audiovisual work to interfaces and development. Today I blend strategy, design and technology to build digital products with character and real results.</p>",
     aboutCta: "Learn more",
-    aboutScribble: "Ideas<br />Design<br />Code<br />Results",
+    aboutScribble: "Think.<br />Sketch.<br />Build.<br />Crush it.",
     aboutStatsLabel: "Key facts",
     statDesign: "Years designing",
     statWeb: "Years in web",
@@ -209,7 +229,7 @@ const copy = {
     edu1Dates: "June 2026 — September 2026",
     edu2Degree: "Professional degree in Advertising and Creative Marketing",
     edu2Dates: "July 2012 — October 2017",
-    edu3Degree: "Print Media Technician",
+    edu3Degree: "Technician in Design for Print Media",
     edu3Dates: "July 2010 — July 2011",
 
     contactTitle: "Contact",
@@ -251,6 +271,12 @@ function setLanguage(language) {
     /* storage unavailable */
   }
 
+  document.querySelectorAll("[data-wa]").forEach((link) => {
+    link.href = `https://wa.me/573172707378?text=${encodeURIComponent(t("waText"))}`;
+  });
+
+  document.title = t("pageTitle");
+
   document.dispatchEvent(new CustomEvent("zhaw:language", { detail: { language } }));
 }
 
@@ -258,11 +284,58 @@ document.querySelectorAll("[data-language]").forEach((button) => {
   button.addEventListener("click", () => setLanguage(button.dataset.language));
 });
 
+/* Mascota: en táctil, un toque la pone feliz un momento */
+const mascot = document.querySelector(".mascot");
+mascot?.addEventListener("click", () => {
+  mascot.classList.add("is-happy");
+  clearTimeout(mascot._happy);
+  mascot._happy = setTimeout(() => mascot.classList.remove("is-happy"), 1400);
+});
+
+/* =========================================================
+   Menú móvil flotante (dock)
+   ========================================================= */
+
+const dock = document.querySelector("[data-dock]");
+const dockToggle = document.querySelector("[data-dock-toggle]");
+const dockScrim = document.querySelector("[data-dock-scrim]");
+
+function setDock(open) {
+  if (!dock) return;
+  dock.classList.toggle("is-open", open);
+  dockScrim?.classList.toggle("is-open", open);
+  dockToggle.setAttribute("aria-expanded", String(open));
+  dockToggle.setAttribute("aria-label", t(open ? "menuClose" : "menuOpen"));
+  if (open) dock.classList.remove("is-compact");
+}
+
+document.addEventListener("zhaw:language", () => setDock(dock?.classList.contains("is-open") ?? false));
+dockToggle?.addEventListener("click", () => setDock(!dock.classList.contains("is-open")));
+dockScrim?.addEventListener("click", () => setDock(false));
+dock?.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => setDock(false)));
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && dock?.classList.contains("is-open")) setDock(false);
+});
+
+/* Al bajar se compacta (solo iconos); al subir vuelve a mostrar los textos */
+let lastDockY = window.scrollY;
+window.addEventListener(
+  "scroll",
+  () => {
+    if (!dock || dock.classList.contains("is-open")) return;
+    const y = window.scrollY;
+    if (Math.abs(y - lastDockY) < 8) return;
+    dock.classList.toggle("is-compact", y > lastDockY && y > 160);
+    lastDockY = y;
+  },
+  { passive: true }
+);
+
 /* =========================================================
    Active nav link (scroll spy)
    ========================================================= */
 
-const navLinks = [...document.querySelectorAll(".main-nav a")];
+const navLinks = [...document.querySelectorAll(".main-nav a, [data-dock] a[href^='#']")];
 const spyTargets = navLinks
   .map((link) => document.querySelector(link.getAttribute("href")))
   .filter((target) => target && target.offsetHeight > 10);
@@ -304,6 +377,49 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
 }
 
 /* =========================================================
+   About — animated figures
+   ========================================================= */
+
+const statNumbers = [...document.querySelectorAll(".about__stats strong[data-count]")];
+
+function setStatNumber(element, value) {
+  element.textContent = `${Math.round(value)}${element.dataset.suffix ?? ""}`;
+}
+
+function animateStatNumber(element) {
+  const target = Number(element.dataset.count);
+  if (!Number.isFinite(target)) return;
+
+  const duration = 1400;
+  const startedAt = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - startedAt) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    setStatNumber(element, target * eased);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+if (statNumbers.length && "IntersectionObserver" in window && !prefersReducedMotion.matches) {
+  statNumbers.forEach((element) => setStatNumber(element, 0));
+
+  const stats = document.querySelector(".about__stats");
+  const statsObserver = new IntersectionObserver(
+    (entries, observer) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      statNumbers.forEach(animateStatNumber);
+      observer.disconnect();
+    },
+    { threshold: 0.4 }
+  );
+
+  if (stats) statsObserver.observe(stats);
+}
+
+/* =========================================================
    ZHAW TV — Projects
    ========================================================= */
 
@@ -340,7 +456,7 @@ if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
   const nextButtons = section.querySelectorAll("[data-project-next]");
 
   const pinQuery = window.matchMedia("(min-width: 1024px) and (min-height: 640px)");
-  const STEP_VH = 0.7; // cuánto scroll vertical consume cada canal
+  const STEP_VH = 0.4; // cuánto scroll vertical consume cada canal
 
   let filter = "web";
   let list = [];
